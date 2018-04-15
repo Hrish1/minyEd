@@ -1,31 +1,28 @@
+import os, sys
 import xml.etree.cElementTree as ET
-
-
-class Links:
-
-    def __init__(self, source, target, edgeId):
-        # continue from here for making Link objects, not used so far
-        self.source = source
-        self.target = target
-
-        self.edgeId = edgeId
 
 
 class TopologyVisualiser:
 
-    def __init__(self, nodes, links={}):
+    def __init__(self, nodes, links):
         # Links need to be added
         self.nodes = nodes
         self.links = links
+        self.buildElements()
 
     def setNode(self, node):
-        Node = ET.Element("node", id=self.nodes.get(node))
+        Node = ET.Element("node", id=node)
         return Node
 
-    # def setLink( self, source, target, edgeId ):
+    def setLink(self, sourceIntf, targetIntf, linkId):
 
-    # link = Links( source, target, edgeId )
-    # self.edges[link.edgeId]=link
+        source = sourceIntf.node.name
+        target = targetIntf.node.name
+        Link = ET.Element("edge", id=linkId)
+        Link.set("source", source)
+        Link.set("target", target)
+
+        return Link
 
     def buildElements(self):
         graphml = ET.Element("graphml", xmlns="http://graphml.graphdrawing.org/xmlns")
@@ -48,21 +45,22 @@ class TopologyVisualiser:
         # node = ET.SubElement(graph ,"node", id="n2")
 
         for node in self.nodes:
-            Node = self.setNode(node)
+            Node = self.setNode(node.__str__())
             graph.append(Node)
 
-        link = ET.SubElement(graph, "edge", id="e0")
-        link.set("source", "n0")
-        link.set("target", "n1")
-        link = ET.SubElement(graph, "edge", id="e1")
-        link.set("source", "n0")
-        link.set("target", "n2")
+        for link in self.links:
+            Link = self.setLink(link.intf1, link.intf2, link.__str__())
+            graph.append(Link)
+
+        #link = ET.SubElement(graph, "edge", id="e0")
+        #link.set("source", "n0")
+        #link.set("target", "n1")
+        #link = ET.SubElement(graph, "edge", id="e1")
+        #link.set("source", "n0")
+        #link.set("target", "n2")
 
         Tree = ET.ElementTree(graphml)
-        Tree.write("test.graphml", encoding="UTF-8")
+        filename = os.path.basename(sys.argv[0])
+        Tree.write(filename.split(".py", 1)[0] + ".graphml", encoding="UTF-8")
 
 
-# Remove this
-if __name__ == '__main__':
-    obj = TopologyVisualiser(nodes={"node1": "n0", "node2": "n1", "node3": "n2"})
-    obj.buildElements()
